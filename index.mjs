@@ -129,7 +129,7 @@ app.get("/lh", async (req, res) => {
     port: chrome.port,
   };
   const runnerResult = await lighthouse(
-    "https://www.aceuae.com/en-ae/",
+    "https://www.google.com/",
     options,
   );
 
@@ -139,7 +139,7 @@ app.get("/lh", async (req, res) => {
 
   // `.lhr` is the Lighthouse Result as a JS object
   console.log(
-    "Report is done forhttps://www.aceuae.com/en-ae/",
+    "Report is done forhttps://www.google.com/",
     runnerResult.lhr.finalDisplayedUrl,
   );
   console.log(
@@ -263,7 +263,7 @@ const page = await browser.newPage();
 await preparePageForTests(page);
 
 // Navigate to the page that will perform the tests.
-const testUrl = 'https://www.aceuae.com/en-ae/';
+const testUrl = 'https://www.google.com/';
 await page.goto(testUrl);
 
 // Save a screenshot of the results.
