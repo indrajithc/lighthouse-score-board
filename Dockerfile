@@ -1,59 +1,47 @@
-FROM ubuntu:latest
+FROM node:16-bullseye-slim
 
-RUN apt-get update; apt-get clean
+# Set variable so puppeteer will not try to download chromium
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 
-# Add a user for running applications.
-RUN useradd apps
-RUN mkdir -p /home/apps && chown apps:apps /home/apps
+# Install utilities
+RUN apt-get update --fix-missing && apt-get -y upgrade && apt-get install -y git wget gnupg && apt-get clean
 
-# Install x11vnc.
-RUN apt-get install -y x11vnc 
+# Install latest chrome stable package.
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+RUN apt-get update \
+    && apt-get install -y google-chrome-stable --no-install-recommends \
+    && apt-get clean
 
-# Install xvfb.
-RUN apt-get install -y xvfb
+# Install Lighthouse CI
+# RUN npm install -g @lhci/cli@0.10.0
+RUN npm install -g lighthouse
 
-# Install fluxbox.
-RUN apt-get install -y fluxbox
+# Install puppeteer
+# RUN npm install -g puppeteer
 
-# Install wget.
-RUN apt-get install -y wget
+# # Setup a user to avoid doing everything as root
+# RUN groupadd --system lhci && \
+#   useradd --system --create-home --gid lhci lhci && \
+#   mkdir --parents /home/lhci/reports && \
+#   chown --recursive lhci:lhci /home/lhci
 
-# Install wmctrl.
-RUN apt-get install -y wmctrl
+# RUN cd /home/lhci/reports && npm link puppeteer
 
+# USER lhci
+# WORKDIR /home/lhci/reports
 
-RUN apt-get update && apt-get install -y gnupg2
+# CMD [ "lhci", "--help" ]
 
-# Set the Chrome repo.
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list
+WORKDIR /app
+COPY package*.json ./
 
-RUN apt-get install -y git-core curl build-essential openssl libssl-dev  
+RUN npm install
 
-# update and install all required packages (no sudo required as root)
-# https://gist.github.com/isaacs/579814#file-only-git-all-the-way-sh
-RUN apt-get update -yq && apt-get upgrade -yq && \
-apt-get install -yq curl git nano
+COPY . .
+# RUN npm run build --production
 
-RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && \
- apt-get install -y nodejs
+# Add support for https on wget
 
- # Install Chrome.
-RUN apt-get clean
- 
- 
-# WORKDIR /app
-# COPY package*.json ./
-
-# RUN npm install
-
-# COPY . .
-# # RUN npm run build --production
-
-# # Add support for https on wget
-
-# EXPOSE 3893
-# CMD ["npm", "start"]
-COPY bootstrap.sh /
-
-CMD '/bootstrap.sh'
+EXPOSE 9000
+CMD ["npm", "start"]
