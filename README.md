@@ -1,2 +1,2 @@
 # lighthouse-score-board
-A simple UI application for display lighthouse scores of different websites
+A simple UI application to display lighthouse scores of different websites
